@@ -15,7 +15,7 @@ function LoginPage() {
 
   useEffect(() => {
     if (user) {
-      navigate('/', { replace: true });
+      navigate('/dashboard', { replace: true });
     }
   }, [user, navigate]);
 
@@ -26,7 +26,7 @@ function LoginPage() {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate('/', { replace: true });
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       setError('ログインに失敗しました。メールアドレスとパスワードを確認してください。');
       console.error(err);
