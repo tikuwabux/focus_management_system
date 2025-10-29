@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { db } from '../firebase.js';
@@ -10,6 +11,7 @@ const shutdownCategories = ['SNS', '動画', 'ニュース', 'その他'];
 
 function DashboardPage() {
   const { user, userDoc, refreshUserDoc, logout } = useAuth();
+  const navigate = useNavigate();
   const [mainGoalText, setMainGoalText] = useState('');
   const [mainGoalDeadline, setMainGoalDeadline] = useState('');
   const [shutdownName, setShutdownName] = useState('');
@@ -407,7 +409,11 @@ function DashboardPage() {
       </main>
 
       <footer className="dashboard-footer">
-        <button type="button" className="focus-button">
+        <button
+          type="button"
+          className="focus-button"
+          onClick={() => navigate('/focus')}
+        >
           集中モードを開始
         </button>
       </footer>

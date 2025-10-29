@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import DashboardPage from './pages/DashboardPage.jsx';
+import FocusPage from './pages/FocusPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
@@ -13,6 +14,14 @@ function App() {
         element={(
           <ProtectedRoute>
             <DashboardPage />
+          </ProtectedRoute>
+        )}
+      />
+      <Route
+        path="/focus"
+        element={(
+          <ProtectedRoute>
+            <FocusPage />
           </ProtectedRoute>
         )}
       />
