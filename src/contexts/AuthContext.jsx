@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
   onAuthStateChanged,
   signOut,
@@ -17,10 +17,11 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [userDoc, setUserDoc] = useState(null);
   const [loading, setLoading] = useState(true);
+  const activeRequestRef = useRef(0);
 
-  const loadUserDocument = useCallback(async (firebaseUser) => {
+  const fetchUserDocument = useCallback(async (firebaseUser) => {
     const ref = doc(db, 'users', firebaseUser.uid);
-    const snapshot = await getDoc(ref);
+    let snapshot = await getDoc(ref);
 
     if (!snapshot.exists()) {
       await setDoc(ref, {
@@ -31,38 +32,67 @@ export function AuthProvider({ children }) {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
-      const newSnapshot = await getDoc(ref);
-      setUserDoc(newSnapshot.data());
-    } else {
-      setUserDoc(snapshot.data());
+      snapshot = await getDoc(ref);
     }
+
+    return snapshot.exists() ? snapshot.data() : null;
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      activeRequestRef.current += 1;
+      const requestId = activeRequestRef.current;
+
+      if (!isMounted) {
+        return;
+      }
+
       if (firebaseUser) {
+        setLoading(true);
         setUser(firebaseUser);
-        await loadUserDocument(firebaseUser);
+        setUserDoc(null);
+
+        try {
+          const data = await fetchUserDocument(firebaseUser);
+          if (isMounted && requestId === activeRequestRef.current) {
+            setUserDoc(data);
+          }
+        } catch (error) {
+          console.error('Failed to load user document', error);
+          if (isMounted && requestId === activeRequestRef.current) {
+            setUserDoc(null);
+          }
+        } finally {
+          if (isMounted && requestId === activeRequestRef.current) {
+            setLoading(false);
+          }
+        }
       } else {
         setUser(null);
         setUserDoc(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return unsubscribe;
-  }, [loadUserDocument]);
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, [fetchUserDocument]);
 
   const refreshUserDoc = useCallback(async () => {
     if (!user) return null;
-    const snapshot = await getDoc(doc(db, 'users', user.uid));
-    if (snapshot.exists()) {
-      const data = snapshot.data();
+    try {
+      const data = await fetchUserDocument(user);
       setUserDoc(data);
       return data;
+    } catch (error) {
+      console.error('Failed to refresh user document', error);
+      return null;
     }
-    return null;
-  }, [user]);
+  }, [user, fetchUserDocument]);
 
   const logout = useCallback(() => signOut(auth), []);
 

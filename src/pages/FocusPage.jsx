@@ -138,7 +138,7 @@ function FocusPage() {
   return (
     <div className="focus-page">
       <header className="focus-top-bar">
-        <button type="button" className="exit-button" onClick={() => navigate('/')}>
+        <button type="button" className="exit-button" onClick={() => navigate('/dashboard')}>
           集中セッションを終了
         </button>
       </header>

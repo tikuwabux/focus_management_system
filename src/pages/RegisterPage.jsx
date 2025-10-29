@@ -17,7 +17,7 @@ function RegisterPage() {
 
   useEffect(() => {
     if (user) {
-      navigate('/', { replace: true });
+      navigate('/dashboard', { replace: true });
     }
   }, [user, navigate]);
 
@@ -43,7 +43,7 @@ function RegisterPage() {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
-      navigate('/', { replace: true });
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       setError('登録に失敗しました。入力内容をご確認ください。');
       console.error(err);
